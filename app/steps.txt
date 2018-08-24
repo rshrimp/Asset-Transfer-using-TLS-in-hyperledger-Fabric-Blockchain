@@ -1,0 +1,25 @@
+steps to create a node.js app
+mkdir app
+mkdir /app/certs_
+cd app
+npm init
+npm install fabric-client@^1.0.0 express@^4.15.2 body-parser@^1.17.1 --save
+npm install ejs@^1.0.0 --save
+
+//copy certs
+cd certs
+cp home/raj/mygo/src/hlfCertification/transfercaapp/crypto-config/peerOrganizations/Org1.com/users/Admin@Org1.com/msp/admincerts/Admin@Org1.com-cert.pem
+ .
+p home/raj/mygo/src/hlfCertification/transfercaapp/crypto-config/peerOrganizations/Org1.com/users/Admin@Org1.com/msp/keystore/* .
+
+touch Org1Admin
+awk '{printf "%s\\n", $0}' Admin\@Org1.com-cert.pem > Org1AdminFormatted.pem
+
+open Org1AdminFormatted.pem
+copy contents to certificate: field in the Org1Admin
+copy name of the private key w/o sk into signingIdentity field
+
+Finally, we have to copy the private key into ~/.hfc-key-store/:
+cp ./dc3adc23b09245fa98e3b56f728be84be059bec48adaed61a14f0cf34a35ec9f_sk ~/.hfc-key-store/dc3adc23b09245fa98e3b56f728be84be059bec48adaed61a14f0cf34a35ec9f-priv
+
+Do not forget to adjust the name of the file with the name, or signingIdentity, of your private key above.We need to change the name suffix from _sk to -priv.

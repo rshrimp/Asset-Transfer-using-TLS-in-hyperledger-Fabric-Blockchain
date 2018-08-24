@@ -1,0 +1,237 @@
+version: '2'
+
+networks:
+  transfer:
+
+services:
+  orderer.transfer.com:
+    image: hyperledger/fabric-orderer:x86_64-1.0.0
+    container_name: orderer.transfer.com
+    environment:
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    volumes:
+      - ./orderer/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ./crypto-config/ordererOrganizations/transfer.com/orderers/orderer.transfer.com/msp:/var/hyperledger/orderer/msp
+      - ./crypto-config/ordererOrganizations/transfer.com/orderers/orderer.transfer.com/tls/:/var/hyperledger/orderer/tls
+      #- orderer.com:/var/hyperledger/production/orderer
+    command: orderer
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    ports:
+      - 7050:7050
+    networks:
+      - transfer
+
+  peer0.Org1.com:
+    container_name: peer0.Org1.com
+    extends:
+      file: ./peer.yaml
+      service: peer
+    environment:
+      - CORE_PEER_ID=peer0.Org1.com
+      - CORE_PEER_ADDRESS=peer0.Org1.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.Org1.com:7051
+      # added as i was getting the error=chaincode instantiate error  x509: cannot validate certificate for 172.22.0.5 because it doesn't contain any IP SANs
+      # resolution at https://jira.hyperledger.org/browse/FAB-7094
+      - CORE_PEER_CHAINCODELISTENADDRESS=peer0.Org1.com:7052
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com/peers/peer0.Org1.com/msp:/etc/hyperledger/msp/peer
+      - ./crypto-config/peerOrganizations/Org1.com/peers/peer0.Org1.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 7051:7051
+      - 7053:7053
+    depends_on:
+      - orderer.transfer.com
+    networks:
+      - transfer
+
+  peer1.Org1.com:
+    container_name: peer1.Org1.com
+    extends:
+      file: ./peer.yaml
+      service: peer
+    environment:
+      - CORE_PEER_ID=peer1.Org1.com
+      - CORE_PEER_ADDRESS=peer1.Org1.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.Org1.com:7051
+      # added as i was getting the error=chaincode instantiate error  x509: cannot validate certificate for 172.22.0.5 because it doesn't contain any IP SANs
+      # resolution at https://jira.hyperledger.org/browse/FAB-7094
+      - CORE_PEER_CHAINCODELISTENADDRESS=peer1.Org1.com:7052
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com/peers/peer1.Org1.com/msp:/etc/hyperledger/msp/peer
+      - ./crypto-config/peerOrganizations/Org1.com/peers/peer1.Org1.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 8051:7051
+      - 8053:7053
+    depends_on:
+      - orderer.transfer.com
+    networks:
+      - transfer
+
+
+  peer0.Org2.com:
+    container_name: peer0.Org2.com
+    extends:
+      file: ./peer.yaml
+      service: peer
+    environment:
+      - CORE_PEER_ID=peer0.Org2.com
+      - CORE_PEER_ADDRESS=peer0.Org2.com:7051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.Org2.com:7051
+      # added as i was getting the error=chaincode instantiate error  x509: cannot validate certificate for 172.22.0.5 because it doesn't contain any IP SANs
+      # resolution at https://jira.hyperledger.org/browse/FAB-7094
+      - CORE_PEER_CHAINCODELISTENADDRESS=peer0.Org2.com:7052
+
+    volumes:
+      - ./crypto-config/peerOrganizations/Org2.com/peers/peer0.Org2.com/msp:/etc/hyperledger/msp/peer
+      - ./crypto-config/peerOrganizations/Org2.com/peers/peer0.Org2.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 9051:7051
+      - 9053:7053
+    depends_on:
+      - orderer.transfer.com
+    networks:
+      - transfer
+
+  peer1.Org2.com:
+    container_name: peer1.Org2.com
+    extends:
+      file: ./peer.yaml
+      service: peer
+    environment:
+      - CORE_PEER_ID=peer1.Org2.com
+      - CORE_PEER_ADDRESS=peer1.Org2.com:7051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.Org2.com:7051
+      # added as i was getting the error=chaincode instantiate error  x509: cannot validate certificate for 172.22.0.5 because it doesn't contain any IP SANs
+      # resolution at https://jira.hyperledger.org/browse/FAB-7094
+      - CORE_PEER_CHAINCODELISTENADDRESS=peer1.Org2.com:7052
+
+    volumes:
+      - ./crypto-config/peerOrganizations/Org2.com/peers/peer1.Org2.com/msp:/etc/hyperledger/msp/peer
+      - ./crypto-config/peerOrganizations/Org2.com/peers/peer1.Org2.com/tls:/etc/hyperledger/fabric/tls
+    ports:
+      - 10051:7051
+      - 10053:7053
+    depends_on:
+      - orderer.transfer.com
+    networks:
+      - transfer
+
+
+  cli.Org1:
+    extends:
+      file: ./cli.yaml
+      service: cli
+    container_name: cli.Org1
+    environment:
+      - CORE_PEER_ID=cli.Org1.com
+      - CORE_PEER_ADDRESS=peer0.Org1.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+    #  - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@Org1.com/msp
+      #added for tls
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/Org1.com/peers/peer0.Org1.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/Org1.com/peers/peer0.Org1.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/Org1.com/peers/peer0.Org1.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/Org1.com/users/Admin@Org1.com/msp
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com:/etc/hyperledger/msp
+    depends_on:
+      - orderer.transfer.com
+      - peer0.Org1.com
+    networks:
+      - transfer
+
+  cli.Org2:
+    extends:
+      file: ./cli.yaml
+      service: cli
+    container_name: cli.Org2
+    environment:
+      - CORE_PEER_ID=cli.Org2.com
+      - CORE_PEER_ADDRESS=peer0.Org2.com:7051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@Org2.com/msp
+      #added for tls
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/Org2.com/peers/peer0.Org2.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/Org2.com/peers/peer0.Org2.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/Org2.com/peers/peer0.Org2.com/tls/ca.crt
+    volumes:
+      - ./crypto-config/peerOrganizations/Org2.com:/etc/hyperledger/msp
+    depends_on:
+      - orderer.transfer.com
+      - peer0.Org2.com
+    networks:
+      - transfer
+
+  ca.Org1:
+    image: hyperledger/fabric-ca
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server-config
+      - FABRIC_CA_SERVER_CA_NAME=ca.Org1
+      #disabling TLS
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.cert.pem
+      # not sure where to find this key
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY
+    ports:
+      - "11051:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com/ca/root/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.Org1
+    networks:
+      - transfer
+
+  ca.Org2:
+    image: hyperledger/fabric-ca
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server-config
+      - FABRIC_CA_SERVER_CA_NAME=ca.Org2
+            #disabling TLS
+      - FABRIC_CA_SERVER_TLS_ENABLED=false
+      - FABRIC_CA_SERVER_TLS_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.cert.pem
+            # not sure where to find this key
+      - FABRIC_CA_SERVER_TLS_KEYFILE=/etc/hyperledger/fabric-ca-server-config/CA1_PRIVATE_KEY
+
+    ports:
+      - "12051:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ./crypto-config/peerOrganizations/Org2.com/ca/root/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.Org2
+    networks:
+      - transfer
+
+
+  client.Org1:
+    tty: true
+    image: hyperledger/fabric-ca
+    container_name: client.Org1
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-client
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com/users/:/etc/hyperledger/fabric-ca-client
+    depends_on:
+      - ca.Org1
+    command: sh -c 'sleep 5;fabric-ca-client enroll -u http://admin:adminpw@ca.Org1:7054;sleep 10000'
+    networks:
+      - transfer
